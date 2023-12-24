@@ -1,0 +1,60 @@
+* Minimum Inverter
+.subckt inv supply Inp Output
+*  This subcircuit defines a CMOS inverter with equal n and p widths
+MP1 Output Inp Supply Supply cmosp
++ L=0.18U W=1.4U AD = 0.504P AS = 0.504P PD = 3.51999U PS = 3.51999U
+MN1 Output Inp 0 0 cmosn
++ L=0.18U W=0.49U AD = 0.1764P AS = 0.1764P PD = 1.7U PS = 1.7U
+.ends
+
+Vin 1 0 dc 1.8
+*INPUT SHAPER
+xin 1 pgen 11 inv
+
+x11 1 11 21 inv
+x12 1 11 22 inv
+x13 1 11 22 inv
+x14 1 11 22 inv
+
+C1 22 0 0.1pF
+
+*DUT
+x21 1 21 31 inv
+
+*TEST LOADS
+x31 1 31 41 inv
+x32 1 31 41 inv
+x33 1 31 41 inv
+x34 1 31 41 inv
+x35 1 31 41 inv
+x36 1 31 41 inv
+x37 1 31 41 inv
+x38 1 31 41 inv
+*load on load
+x41 1 41 51 inv
+x42 1 41 51 inv
+x43 1 41 51 inv
+x44 1 41 51 inv
+
+C2 51 0 0.1pF
+
+.include models-180nm
+
+* Parameter Definitions
+.param Trep = 5n
+.param Trf = {Trep/20.0}
+.param Tw = {Trep/2.0 - Trf}
+.param hival = 1.8
+.param loval = 0.0
+
+* TRANSIENT ANALYSIS with pulse inputs
+Vpulse pgen 0 DC 0 PULSE({loval} {hival} {Tw} {Trf} {Trf} {Tw} {Trep})
+.tran 1pS {3*Trep} 0nS
+
+.control
+run
+meas tran invdelay1 TRIG v(21) VAL=0.9 RISE=2 TARG v(31) VAL=0.9 FALL=2
+
+
+.endc
+.end
